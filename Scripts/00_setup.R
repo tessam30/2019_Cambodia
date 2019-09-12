@@ -5,7 +5,7 @@
 # Audience: Cambodia Mission
 
 # Load libraries and data -------------------------------------------------
-pacman::p_load("tidyverse", "lubridate", "sf", "extrafont", "readxl", "measurements", "pdftools", "purrr", "styler", "scales", "llamar", "haven", "sjlabelled", "vtable", "sjmisc", "survey", "data.table", "lemon", "widyr", "RColorBrewer", "readxl")
+pacman::p_load("tidyverse", "lubridate", "sf", "extrafont", "readxl", "measurements", "pdftools", "purrr", "styler", "scales", "llamar", "haven", "sjlabelled", "vtable", "sjmisc", "survey", "data.table", "lemon", "widyr", "RColorBrewer", "readxl", "tidylog")
 
 # Create folders for project (if they do not exist)
 folder_list <- list("Data", "Images", "Scripts", "Dataout", "GIS", "Documents", "Graphics")

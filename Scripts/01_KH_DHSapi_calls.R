@@ -47,7 +47,6 @@ kh_dhs %>% filter(survey_year > 2000) %>%
 
 
 # For 2000, there are only 17 regions
-Preah Vi
 
 
 kh_dhs %>% 
@@ -55,4 +54,3 @@ kh_dhs %>%
   count() %>% 
   print(n = Inf)
 
-llamar::
