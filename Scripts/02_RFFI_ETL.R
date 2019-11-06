@@ -20,8 +20,6 @@ names(fish) <- as.list(access_files) %>% set_names()
 pond_cat <- fish$`Biological Monitoring_BasicInfo.xlsx` %>% 
   select(CFRName, Category)
 
-
-
 # Add in category to the plots and do double facet wrap
 gov <- fish$`Governance Scores 2012 & 2015.xlsx` %>% 
   mutate(Overall = rowMeans(.[,3:7])) %>%
@@ -92,8 +90,7 @@ map2(file.path(imagepath, paste0("Category ", plots$Category,
 
 gov_summary <- gov_plot(gov) + labs(x = "", y = "", 
                      caption = "Source: 2016 Rice Field Fishery Enhancement Project Database: Governance Scores Module")
-
-  ggsave(file.path(imagepath, "RFFI_Governance_Summary.pdf"),
+ ggsave(file.path(imagepath, "Summary governance scores for community fish refuges.pdf"),
          plot = gov_summary,
          height = 8.5,
          width = 11,
