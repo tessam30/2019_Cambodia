@@ -16,9 +16,16 @@ fish <- map(as.list(access_files), ~read_excel(file.path(access_path, .)))
 
 names(fish) <- as.list(access_files) %>% set_names()
 
+# Pluck out fish pond category
+pond_cat <- fish$`Biological Monitoring_BasicInfo.xlsx` %>% 
+  select(CFRName, Category)
 
+
+
+# Add in category to the plots and do double facet wrap
 gov <- fish$`Governance Scores 2012 & 2015.xlsx` %>% 
-  mutate(Overall = rowMeans(.[,3:7])) %>% 
+  mutate(Overall = rowMeans(.[,3:7])) %>%
+  left_join(., pond_cat, by = c(`CFR name` = "CFRName")) %>% 
   gather("gov_type", "value", Structure:Overall) %>% 
   group_by(Year, `CFR name`) %>% 
   mutate(ave_value = mean(value, na.rm = TRUE)) %>% 
@@ -57,13 +64,35 @@ gov_plot <- function(df, sortvar = max_value) {
     theme(axis.text = element_text(size = 8),
           panel.grid.major.y = element_blank(),
           strip.text = element_text(hjust = 0, size = 12)) +
-    scale_fill_identity() +
-    labs(x = "", y = "",
-         caption = "Source: 2016 Rice Field Fishery Enhancement Project Database: Governance Scores Module",
-         title = "Governance structure was ranked the highest overall")
+    scale_fill_identity() 
 }
 
-(gov_summary <- gov_plot(gov))
+
+# Loop over plots by category, saving resulting plots in a grouped / nested dataframe
+# extract the nested plots by calling the appropriate position of the nested plot
+plots <- 
+  gov %>% 
+  group_by(Category) %>% 
+  nest() %>% 
+  mutate(plots = map2(data, Category, 
+                      ~gov_plot(.) + labs(x = "", y = "",
+                      title = str_c("Category ", Category, ": Governance scores for community fish refuges"),                      
+        caption = "Source: 2016 Rice Field Fishery Enhancement Project Database: Governance Scores Module")))
+         
+plots$plots[2]
+
+map2(file.path(imagepath, paste0("Category ", plots$Category,  
+                                 ": Governance scores for community fish refuges.pdf")), 
+     plots$plots,
+     height = 8.5, 
+     width = 11,
+     dpi = 300, 
+     ggsave)
+
+
+gov_summary <- gov_plot(gov) + labs(x = "", y = "", 
+                     caption = "Source: 2016 Rice Field Fishery Enhancement Project Database: Governance Scores Module")
+
   ggsave(file.path(imagepath, "RFFI_Governance_Summary.pdf"),
          plot = gov_summary,
          height = 8.5,
