@@ -63,6 +63,8 @@ khr_admin1 <- ne_states(country = "cambodia", returnclass = "sf")
 
 # Add in the water bodies
 khr_water <- st_read(file.path(gispath, "water_bodies2015", "water-bodies.shp")) 
+khr_water2 <- st_read(file.path(gispath, "ne_10m_lakes", "ne_10m_lakes.shp")) %>% 
+  filter(str_detect(name_abb, "Tonle Sap"))
 
 
 # SR_LR is the SRTM dem data. This gives the visual pop of terrain that PG loves to showcase
@@ -79,6 +81,8 @@ mapRange <- c(range(st_coordinates(khr_admin0)[, 1]), range(st_coordinates(khr_a
 # Add a bit of padding the bounding box
 ne_ocean_chop <- st_crop(ne_ocean, xmin = 101.5, ymin = 9.5, xmax = 108, ymax = 17.5)
 ne_geo_chop <- crop(ne_geo, ne_ocean_chop)
+
+
 
 # Need a data frame to get ggplot to render the raster data
 spdf <- as(ne_geo_chop, "SpatialPixelsDataFrame") %>% as.data.frame(.)
