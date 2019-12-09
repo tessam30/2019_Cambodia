@@ -72,7 +72,7 @@ ne_cities_trunc <- ne_cities %>% filter(str_detect(name, "Siem|Minh|Penh|Kampong
   geom_sf(data = khr_nbrs, fill = "NA", colour = "#f9f9f9", size = 0.5, alpha = 0.85) +
   geom_sf(data = khr_admin0, colour = "white", fill = "NA", size = 0.9) +
   geom_sf(data = khr_admin0, colour = "black", fill = "NA") +
-   geom_sf(data = khr_water2, fill = "#bee0ff", colour ="#8bc8ff", size = 0.5) +
+  geom_sf(data = khr_water2, fill = "#bee0ff", colour = "#8bc8ff", size = 0.5) +
   geom_sf_text_repel(data = ne_cities_trunc, aes(label = name), alpha = 0.90, family = "SegoeUI") +
    geom_sf_text_repel(data = khr_water2, aes(label = name), alpha = 0.90, family = "SegoeUI") +
   #geom_sf_text_repel(data = ne_colombia, aes(label = Departmento)) +
