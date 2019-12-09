@@ -14,9 +14,9 @@ pacman::p_load(
 )
 
 
-#extrafont::loadfonts() # For custom fonts such as SegoeUI used here
+# extrafont::loadfonts() # For custom fonts such as SegoeUI used here
 
-#devtools::install_github("renkun-ken/formattable")
+# devtools::install_github("renkun-ken/formattable")
 # devtools::install_github("ropensci/rnaturalearthhires") # to grab polygons
 # devtools::install_github("yutannihilation/ggsflabel")
 
@@ -29,41 +29,29 @@ source(file.path(rpath, "KHR_cw.R")) # -- doesn't exist...yet
 khm_admin1 <- st_read(file.path(gispath, ))
 
 
-# Convert to geo_json for simplification, then back to an sf object for ggplotting
-# geo_json <- geojson_json(geo, geometry = "polygon", group = "group")
-# col_geo <- rmapshaper::ms_simplify(geo_json) %>% geojson_sf(.)
-
-
-# Load the excel sheet in a single batch writing to a list; Makes for easy handling
-# read_path <- file.path(file.path(datapath, "COL_DECA_ICT.xlsx"))
-# 
-# ict <-
-#   excel_sheets(read_path) %>%
-#   set_names() %>%
-#   purrr::map(., ~ read_excel(., path = read_path))
-
-
 # Natural Earth -----
 
 # World polygons required for the non-AOI map; These will be faded with alpha calls in ggplot later
-world <- ne_countries(scale = "large", returnclass = "sf") 
+world <- ne_countries(scale = "large", returnclass = "sf")
 
 # Get the list of countries needed for the filter call above
-world %>% st_drop_geometry() %>% filter(str_detect(sovereignt, "Thail|Viet|Lao|Cam")) %>% 
-  count(sovereignt) 
+world %>%
+  st_drop_geometry() %>%
+  filter(str_detect(sovereignt, "Thail|Viet|Lao|Cam")) %>%
+  count(sovereignt)
 
 # Filter out neighbors and admin0 for AIO
-khr_nbrs <- world %>% 
+khr_nbrs <- world %>%
   filter(sovereignt %in% c("Thailand", "Vietnam", "Laos"))
 
 khr_admin0 <- world %>% filter(sovereignt == "Cambodia")
 
 # pull in the Cambodia admin1 file from natural earth database
-khr_admin1 <- ne_states(country = "cambodia", returnclass = "sf") 
+khr_admin1 <- ne_states(country = "cambodia", returnclass = "sf")
 
 # Add in the water bodies
-khr_water <- st_read(file.path(gispath, "water_bodies2015", "water-bodies.shp")) 
-khr_water2 <- st_read(file.path(gispath, "ne_10m_lakes", "ne_10m_lakes.shp")) %>% 
+khr_water <- st_read(file.path(gispath, "water_bodies2015", "water-bodies.shp"))
+khr_water2 <- st_read(file.path(gispath, "ne_10m_lakes", "ne_10m_lakes.shp")) %>%
   filter(str_detect(name_abb, "Tonle Sap"))
 
 
@@ -81,7 +69,6 @@ mapRange <- c(range(st_coordinates(khr_admin0)[, 1]), range(st_coordinates(khr_a
 # Add a bit of padding the bounding box
 ne_ocean_chop <- st_crop(ne_ocean, xmin = 101.5, ymin = 9.5, xmax = 108, ymax = 17.5)
 ne_geo_chop <- crop(ne_geo, ne_ocean_chop)
-
 
 
 # Need a data frame to get ggplot to render the raster data
@@ -150,15 +137,15 @@ base_terrain <- oth_countries +
   labs(x = "", y = "", caption = str_c("Created by USAID GeoCenter on ", today()))
 
 ggsave(file.path(imagepath, "COL_basemap_terrain.pdf"),
-       plot = base_terrain,
-       height = 11, width = 8.5, dpi = "retina", units = "in"
+  plot = base_terrain,
+  height = 11, width = 8.5, dpi = "retina", units = "in"
 )
 
 
 # Create a custom color palette for the number of Admin 1s
 colors_needed <- length(unique(khr_admin1$name))
-dept_colors <- colorRampPalette(RColorBrewer::brewer.pal(12,"Set3"))(colors_needed)
-palette(colorRampPalette(brewer.pal(12,"Set3"))(colors_needed))
+dept_colors <- colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(colors_needed)
+palette(colorRampPalette(brewer.pal(12, "Set3"))(colors_needed))
 plot(1:colors_needed, 1:colors_needed, col = 1:colors_needed, pch = 19, cex = 5)
 
 base_map <-
@@ -169,15 +156,16 @@ base_map <-
   geom_sf(data = khr_admin0, colour = "black", fill = "NA", size = 0.5) +
   geom_sf_text_repel(data = khr_admin1, aes(label = name), colour = "black", size = 2.5) +
   geom_sf(data = khr_water, fill = "#bee0ff", alpha = 0.70, colour = "#8bc8ff", size = 0.25) +
-  map_clean + theme(legend.position = "none", text = element_text(family = "SegoeUI"))  +
+  map_clean + theme(legend.position = "none", text = element_text(family = "SegoeUI")) +
   coord_sf(xlim = mapRange[c(1:2)], ylim = mapRange[c(3:4)]) +
-  labs(x = "", y = "", caption = str_c("Created by USAID GeoCenter on ", today()),
-       title = str_c("**", "Administrative Departments of Colombia","**")) +
-  theme(plot.title = element_markdown() 
-  )
+  labs(
+    x = "", y = "", caption = str_c("Created by USAID GeoCenter on ", today()),
+    title = str_c("**", "Administrative Departments of Colombia", "**")
+  ) +
+  theme(plot.title = element_markdown())
 
 
 ggsave(file.path(imagepath, "KHR_basemap_admin1.png"),
-       plot = base_map,
-       height = 11, width = 8.5, dpi = 600, units = "in" #device = cairo_pdf
+  plot = base_map,
+  height = 11, width = 8.5, dpi = 600, units = "in" # device = cairo_pdf
 )
