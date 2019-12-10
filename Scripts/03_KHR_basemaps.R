@@ -26,7 +26,8 @@ pacman::p_load(
 source(file.path(rpath, "KHR_cw.R")) # -- doesn't exist...yet
 
 # With cw loaded, we can now join to the shapefile to have it merge ready for below
-khm_admin1 <- st_read(file.path(gispath, ))
+khr_poverty <- st_read(file.path(gispath, "poverty_2015", "poverty_rate_commune.shp")) %>% 
+  mutate(poverty = pov_rate / 100)
 
 
 # Natural Earth -----
@@ -48,7 +49,7 @@ khr_admin0 <- world %>% filter(sovereignt == "Cambodia")
 
 # pull in the Cambodia admin1 file from natural earth database
 khr_admin1 <- ne_states(country = "cambodia", returnclass = "sf")
-
+kh
 # Add in the water bodies
 khr_water <- st_read(file.path(gispath, "water_bodies2015", "water-bodies.shp"))
 khr_water2 <- st_read(file.path(gispath, "ne_10m_lakes", "ne_10m_lakes.shp")) %>%
@@ -69,6 +70,8 @@ mapRange <- c(range(st_coordinates(khr_admin0)[, 1]), range(st_coordinates(khr_a
 # Add a bit of padding the bounding box
 ne_ocean_chop <- st_crop(ne_ocean, xmin = 101.5, ymin = 9.5, xmax = 108, ymax = 17.5)
 ne_geo_chop <- crop(ne_geo, ne_ocean_chop)
+
+ne_cities_trunc <- ne_cities %>% filter(str_detect(name, "Siem|Minh|Penh|Kampong Cham|Sisophon|Battambang|Sihanouk"))
 
 
 # Need a data frame to get ggplot to render the raster data
@@ -148,24 +151,32 @@ dept_colors <- colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(colors_nee
 palette(colorRampPalette(brewer.pal(12, "Set3"))(colors_needed))
 plot(1:colors_needed, 1:colors_needed, col = 1:colors_needed, pch = 19, cex = 5)
 
-base_map <-
+pov_map <-
   base_terrain +
-  geom_sf(data = khr_admin1, aes(fill = name), size = 0.5, colour = "#525252", alpha = 0.5) +
-  scale_fill_manual(values = dept_colors) +
+  geom_sf(data = khr_poverty, aes(fill = poverty), size = 0.5, colour = "NA", alpha = 0.75) +
+  #scale_fill_manual(values = dept_colors) +
+  scale_fill_viridis_c(option = "D", direction = -1, labels = scales::percent_format()) +
+
   geom_sf(data = khr_admin0, colour = "white", fill = "NA", size = 1) +
   geom_sf(data = khr_admin0, colour = "black", fill = "NA", size = 0.5) +
-  geom_sf_text_repel(data = khr_admin1, aes(label = name), colour = "black", size = 2.5) +
+  #geom_sf_text_repel(data = khr_admin1, aes(label = name), colour = "black", size = 2.5) +
   geom_sf(data = khr_water, fill = "#bee0ff", alpha = 0.70, colour = "#8bc8ff", size = 0.25) +
-  map_clean + theme(legend.position = "none", text = element_text(family = "SegoeUI")) +
+  geom_sf(data = ne_cities_trunc, alpha = 0.90) +
+  geom_sf_text_repel(data = ne_cities_trunc, aes(label = name), alpha = 0.90, family = "SegoeUI") +
+  map_clean + theme(legend.position = "top", text = element_text(family = "SegoeUI"),
+                    legend.justification = "left",
+                    legend.key.height = unit(0.4, "cm")) +
   coord_sf(xlim = mapRange[c(1:2)], ylim = mapRange[c(3:4)]) +
   labs(
     x = "", y = "", caption = str_c("Created by USAID GeoCenter on ", today()),
-    title = str_c("**", "Administrative Departments of Colombia", "**")
+    title = str_c("**", "Poverty rates in Cambodia as of 2015", "**"),
+    subtitle = "Darker colors indicate higher poverty rates",
+    fill = "poverty rate"
   ) +
   theme(plot.title = element_markdown())
 
 
-ggsave(file.path(imagepath, "KHR_basemap_admin1.png"),
+ggsave(file.path(imagepath, "KHR_poverty_2015.png"),
   plot = base_map,
-  height = 11, width = 8.5, dpi = 600, units = "in" # device = cairo_pdf
+  height = 8.5, width = 11, dpi = 600, units = "in" # device = cairo_pdf
 )
