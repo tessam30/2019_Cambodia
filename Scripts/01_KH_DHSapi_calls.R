@@ -39,16 +39,14 @@ summary(kh_dhs)
 
 # Plot results to see what is consistent across time / space
 kh_dhs %>% filter(survey_year > 2000) %>% 
-  ggplot(aes(x = survey_year, y = value, group = characteristic_label)) +
-  geom_line() + geom_point() +
+  ggplot(aes(x = survey_year, y = value, group = characteristic_label, colour = indicator)) +
+  geom_point() + geom_smooth(aes(group = indicator)) +
   facet_wrap(~characteristic_label) +
   #scale_y_continuous(scales::percent_format()) + 
-  theme_minimal()
+  theme_minimal() + theme(legend.position = "top")
 
 
 # For 2000, there are only 17 regions
-
-
 kh_dhs %>% 
   group_by(characteristic_label, survey_year_label) %>% 
   count() %>% 
